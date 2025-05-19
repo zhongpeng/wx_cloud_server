@@ -16,4 +16,24 @@ router.post('/get', async function (req, res, next) {
   })
 })
 
+/**
+ * 查询菜品数据
+ */
+router.get('/dish', async function (req, res, next) {
+  try {
+    const result = await mysql.query('SELECT * FROM dish')
+    res.json({
+      success: true,
+      data: result.data
+    })
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: '查询菜品数据失败',
+      error: error.message
+    })
+  }
+})
+
+
 module.exports = router
