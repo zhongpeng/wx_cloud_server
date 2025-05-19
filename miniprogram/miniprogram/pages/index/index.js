@@ -1,8 +1,5 @@
-// ... existing code ...
-
 Page({
   data: {
-    accessCount: '-',
     mediaData: {
       list: [],
       total: 0,
@@ -12,14 +9,23 @@ Page({
     loading: false
   },
 
-  // ... existing functions ...
+  onLoad() {
+    this.loadMediaData();
+  },
 
-  // 获取电影数据
-  async fetchMediaData(page = 1) {
+  async loadMediaData() {
+    if (this.data.loading) return;
+    this.setData({
+      loading: true
+    });
+
     try {
-      this.setData({ loading: true });
+      const {
+        page,
+        pageSize
+      } = this.data.mediaData;
       const response = await wx.cloud.callContainer({
-        path: `/media?page=${page}&pageSize=${this.data.mediaData.pageSize}`,
+        path: `/media?page=${page}&pageSize=${pageSize}`,
         method: "GET",
         header: {
           'X-WX-SERVICE': 'ordering-system'
@@ -28,40 +34,44 @@ Page({
           env: "prod-5ghkbwa03964ccbe"
         }
       });
-      return response.data;
-    } catch (e) {
-      console.error('获取电影数据失败:', e);
-      throw e;
-    } finally {
-      this.setData({ loading: false });
-    }
-  },
-
-  // 加载更多电影数据
-  async loadMoreMedia() {
-    if (this.data.loading || 
-        this.data.mediaData.list.length >= this.data.mediaData.total) {
-      return;
-    }
-    
-    const nextPage = this.data.mediaData.page + 1;
-    const result = await this.fetchMediaData(nextPage);
-    
-    this.setData({
-      mediaData: {
-        list: [...this.data.mediaData.list, ...result.list],
-        total: result.total,
-        page: nextPage,
-        pageSize: result.pageSize
+      console.log(response)
+      console.log(response.data)
+      console.log(response.data.data.list)
+      if (!response || !response.data || !response.data.data.list) {
+        throw new Error('Invalid response data');
       }
-    });
+      const newData = response.data.data;
+      this.setData({
+        mediaData: {
+          list: [...this.data.mediaData.list, ...(newData.list || [])], // 确保list存在
+          total: newData.total || 0,
+          page: newData.page || this.data.mediaData.page + 1,
+          pageSize: newData.pageSize || this.data.mediaData.pageSize
+        },
+        loading: false
+      });
+    } catch (e) {
+      console.error('加载数据失败:', e);
+      this.setData({
+        loading: false,
+        mediaData: {
+          ...this.data.mediaData,
+          list: this.data.mediaData.list || [] // 确保list有默认值
+        }
+      });
+    }
   },
 
-  onShow: async function() {
-    // ... existing code ...
-    
-    // 初始化加载电影数据
-    const mediaData = await this.fetchMediaData();
-    this.setData({ mediaData });
+  onReachBottom() {
+    if (!this.data.loading &&
+      this.data.mediaData.list.length < this.data.mediaData.total) {
+      this.setData({
+        mediaData: {
+          ...this.data.mediaData,
+          page: this.data.mediaData.page + 1
+        }
+      });
+      this.loadMediaData();
+    }
   }
 });

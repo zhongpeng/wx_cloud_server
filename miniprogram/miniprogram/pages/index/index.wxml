@@ -1,14 +1,21 @@
-// ... existing code ...
-
-<view class="media-list">
-  <block wx:for="{{mediaData.list}}" wx:key="id">
-    <view class="media-item">
-      <image src="{{item.poster}}" mode="aspectFill"></image>
-      <text>{{item.title}}</text>
+<view class="container">
+  <scroll-view 
+    scroll-y 
+    class="scroll-view"
+    bindscrolltolower="onReachBottom"
+  >
+    <view class="media-list">
+      <block wx:for="{{mediaData.list}}" wx:key="id">
+        <view class="media-item">
+          <image src="{{item.thumbnail}}" mode="aspectFill" class="poster"></image>
+          <text class="title">{{item.title}}</text>
+        </view>
+      </block>
     </view>
-  </block>
-</view>
-
-<view wx:if="{{mediaData.list.length < mediaData.total}}" bindtap="loadMoreMedia">
-  加载更多
+    
+    <view wx:if="{{loading}}" class="loading">加载中...</view>
+    <view wx:if="{{!loading && mediaData.list.length >= mediaData.total}}" class="no-more">
+      没有更多数据了
+    </view>
+  </scroll-view>
 </view>
