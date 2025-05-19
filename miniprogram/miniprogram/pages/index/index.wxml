@@ -1,0 +1,14 @@
+// ... existing code ...
+
+<view class="media-list">
+  <block wx:for="{{mediaData.list}}" wx:key="id">
+    <view class="media-item">
+      <image src="{{item.poster}}" mode="aspectFill"></image>
+      <text>{{item.title}}</text>
+    </view>
+  </block>
+</view>
+
+<view wx:if="{{mediaData.list.length < mediaData.total}}" bindtap="loadMoreMedia">
+  加载更多
+</view>
