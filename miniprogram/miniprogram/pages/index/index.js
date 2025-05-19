@@ -6,6 +6,15 @@ Page({
       page: 1,
       pageSize: 10
     },
+    filters: {
+      country: '',
+      genre: '',
+      category: ''
+    },
+    sort: {
+      field: 'year',
+      order: 'desc'
+    },
     loading: false
   },
 
@@ -13,65 +22,86 @@ Page({
     this.loadMediaData();
   },
 
+  // 筛选条件变化
+  handleFilterChange(e) {
+    const { field, value } = e.detail;
+    this.setData({
+      filters: {
+        ...this.data.filters,
+        [field]: value
+      }
+    }, () => {
+      this.resetAndLoad();
+    });
+  },
+
+  // 排序变化
+  handleSortChange(e) {
+    this.setData({
+      sort: e.detail
+    }, () => {
+      this.resetAndLoad();
+    });
+  },
+
+  // 重置并重新加载
+  resetAndLoad() {
+    this.setData({
+      'mediaData.list': [],
+      'mediaData.page': 1,
+      'mediaData.total': 0
+    }, () => {
+      this.loadMediaData();
+    });
+  },
+
+  // 加载数据
   async loadMediaData() {
     if (this.data.loading) return;
-    this.setData({
-      loading: true
-    });
-
+    
+    this.setData({ loading: true });
     try {
-      const {
-        page,
-        pageSize
-      } = this.data.mediaData;
+      const { page, pageSize } = this.data.mediaData;
+      const { country, genre, category } = this.data.filters;
+      const { field, order } = this.data.sort;
+      
       const response = await wx.cloud.callContainer({
-        path: `/media?page=${page}&pageSize=${pageSize}`,
+        path: `/media?page=${page}&pageSize=${pageSize}&country=${country}&genre=${genre}&category=${category}&sort=${field}&order=${order}`,
         method: "GET",
         header: {
           'X-WX-SERVICE': 'ordering-system'
         },
         config: {
-          env: "prod-5ghkbwa03964ccbe"
+          env: "prod-5ghkbwa03964ccbe",
+          timeout:15000
         }
       });
-      console.log(response)
-      console.log(response.data)
-      console.log(response.data.data.list)
-      if (!response || !response.data || !response.data.data.list) {
-        throw new Error('Invalid response data');
-      }
+      
       const newData = response.data.data;
       this.setData({
         mediaData: {
-          list: [...this.data.mediaData.list, ...(newData.list || [])], // 确保list存在
-          total: newData.total || 0,
-          page: newData.page || this.data.mediaData.page + 1,
-          pageSize: newData.pageSize || this.data.mediaData.pageSize
+          list: [...this.data.mediaData.list, ...newData.list],
+          total: newData.total,
+          page: newData.page,
+          pageSize: newData.pageSize
         },
         loading: false
       });
     } catch (e) {
       console.error('加载数据失败:', e);
-      this.setData({
-        loading: false,
-        mediaData: {
-          ...this.data.mediaData,
-          list: this.data.mediaData.list || [] // 确保list有默认值
-        }
-      });
+      this.setData({ loading: false });
     }
   },
 
+  // 滚动到底部加载更多
   onReachBottom() {
-    if (!this.data.loading &&
-      this.data.mediaData.list.length < this.data.mediaData.total) {
+    if (!this.data.loading && 
+        this.data.mediaData.list.length < this.data.mediaData.total) {
       this.setData({
-        mediaData: {
-          ...this.data.mediaData,
-          page: this.data.mediaData.page + 1
-        }
+        'mediaData.page': this.data.mediaData.page + 1
+      }, () => {
+        this.loadMediaData();
       });
-      this.loadMediaData();
     }
   }
 });

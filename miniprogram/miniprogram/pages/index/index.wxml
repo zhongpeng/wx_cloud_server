@@ -1,18 +1,44 @@
 <view class="container">
-  <scroll-view 
-    scroll-y 
-    class="scroll-view"
-    bindscrolltolower="onReachBottom"
-  >
+  <!-- 筛选区域 -->
+  <view class="filter-area">
+    <picker mode="selector" range-countries="{{countries}}" bindchange="handleCountryChange">
+      <view>国家: {{filters.country || '全部'}}</view>
+    </picker>
+    <picker mode="selector" range-genres="{{genres}}" bindchange="handleGenreChange">
+      <view>类型: {{filters.genre || '全部'}}</view>
+    </picker>
+    <picker mode="selector" range="{{['全部','TV','movie']}}" bindchange="handleCategoryChange">
+      <view>分类: {{filters.category || '全部'}}</view>
+    </picker>
+  </view>
+
+  <!-- 排序区域 -->
+  <view class="sort-area">
+    <view class="sort-item {{sort.field === 'year' ? 'active' : ''}}" 
+          bindtap="handleSortChange" data-field="year">
+      年份 {{sort.field === 'year' ? (sort.order === 'desc' ? '↓' : '↑') : ''}}
+    </view>
+    <view class="sort-item {{sort.field === 'rating' ? 'active' : ''}}" 
+          bindtap="handleSortChange" data-field="rating">
+      评分 {{sort.field === 'rating' ? (sort.order === 'desc' ? '↓' : '↑') : ''}}
+    </view>
+  </view>
+
+  <!-- 内容区域 -->
+  <scroll-view scroll-y class="content-area">
     <view class="media-list">
       <block wx:for="{{mediaData.list}}" wx:key="id">
         <view class="media-item">
-          <image src="{{item.thumbnail}}" mode="aspectFill" class="poster"></image>
-          <text class="title">{{item.title}}</text>
+          <image src="{{item.thumbnail}}" mode="aspectFill"></image>
+          <view class="info">
+            <text class="title">{{item.title}}</text>
+            <text class="meta">{{item.year}} · {{item.country}}</text>
+            <text class="rating">评分: {{item.rating}}</text>
+          </view>
         </view>
       </block>
     </view>
-    
+
     <view wx:if="{{loading}}" class="loading">加载中...</view>
     <view wx:if="{{!loading && mediaData.list.length >= mediaData.total}}" class="no-more">
       没有更多数据了

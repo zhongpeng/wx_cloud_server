@@ -47,20 +47,26 @@ router.get('/media', async function (req, res, next) {
     const { 
       page = 1, 
       pageSize = 10,
-      country,       // 国家筛选参数
-      genre,         // 剧情类型筛选参数
-      category,      // 新增：类型筛选参数(TV/movie)
-      sort = 'year', // 排序字段，默认按年份
-      order = 'desc' // 排序顺序，默认降序
+      country,
+      genre,
+      category,
+      sort = 'year',
+      order = 'desc'
     } = req.query;
 
+    // 1. 添加参数验证
+    if (pageSize > 100) {
+      return res.status(400).json({
+        success: false,
+        message: 'pageSize最大不能超过100'
+      });
+    }
+
     const offset = (page - 1) * pageSize;
-    
-    // 构建基础SQL
     let baseSql = 'FROM media WHERE 1=1';
     const params = [];
     
-    // 添加筛选条件
+    // 2. 优化SQL查询条件
     if (country) {
       baseSql += ' AND country = ?';
       params.push(country);
@@ -69,14 +75,23 @@ router.get('/media', async function (req, res, next) {
       baseSql += ' AND genre LIKE ?';
       params.push(`%${genre}%`);
     }
-    // 新增类型筛选条件
     if (category && ['TV', 'movie'].includes(category)) {
       baseSql += ' AND category = ?';
       params.push(category);
     }
     
-    // ... existing code ...
-    
+    // 3. 分两个独立查询提高性能
+    const [countResult, result] = await Promise.all([
+      mysql.query(`SELECT COUNT(*) as total ${baseSql}`, params),
+      mysql.query(
+        `SELECT id, title, thumbnail, year, rating, country, genre, category 
+         ${baseSql} 
+         ORDER BY ${mysql.escapeId(sort)} ${order === 'asc' ? 'ASC' : 'DESC'} 
+         LIMIT ?, ?`, 
+        [...params, offset, parseInt(pageSize)]
+      )
+    ]);
+
     res.json({
       success: true,
       data: {
@@ -84,23 +99,18 @@ router.get('/media', async function (req, res, next) {
         total: countResult.data[0].total,
         page: parseInt(page),
         pageSize: parseInt(pageSize),
-        filters: {
-          country,
-          genre,
-          category // 新增类型筛选参数
-        },
-        sort: {
-          field: sortField,
-          order: sortOrder
-        }
+        filters: { country, genre, category },
+        sort: { field: sort, order }
       }
     });
+    
   } catch (error) {
-    // ... existing error handling ...
+    console.error('媒体查询错误:', error);
+    res.status(500).json({
+      success: false,
+      message: '查询失败，请稍后再试',
+      error: error.message
+    });
   }
 });
-
-// ... existing code ...
-
-
 module.exports = router
