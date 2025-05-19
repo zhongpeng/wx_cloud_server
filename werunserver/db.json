@@ -1,0 +1,7 @@
+{
+  "host": "10.15.105.30",
+  "user": "root",
+  "password": "Root1234",
+  "port": "3306",
+  "database": "salman"
+}
