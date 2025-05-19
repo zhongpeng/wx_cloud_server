@@ -11,7 +11,7 @@ Page({
 			},
 			header: {
 				// 服务名字要在这里标明，可以针对于每个服务单独创建API类，具体按照自身业务实现
-				'X-WX-SERVICE': ''
+				'X-WX-SERVICE': 'ordering-system'
 			},
 			config: {
 				// 微信云托管环境，注意不是云开发环境
