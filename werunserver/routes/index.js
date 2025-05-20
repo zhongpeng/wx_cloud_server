@@ -161,13 +161,23 @@ router.get('/mediaCountries', async function (req, res, next) {
 router.get('/mediaGenres', async function (req, res, next) {
   try {
     const result = await mysql.query(`
-      SELECT
-        genres,
-        COUNT(*) as count
-      FROM media
-      WHERE genres IS NOT NULL AND genres!= ''
-      GROUP BY genres
-      ORDER BY count DESC
+      SELECT DISTINCT g.genres
+          FROM media g
+          WHERE g.genres IS NOT NULL 
+          AND g.genres != ""
+          AND NOT EXISTS (
+              SELECT 1 
+              FROM media m
+              WHERE m.genres IS NOT NULL
+              AND m.genres != ""
+              AND m.genres != g.genres
+              AND (
+                  g.genres LIKE CONCAT("%", m.genres, "%")
+                  OR
+                  m.genres LIKE CONCAT("%", g.genres, "%")
+              )
+              AND LENGTH(m.genres) < LENGTH(g.genres)
+          ) ORDER BY g.genres;
     `);
     res.json({
       success: true,
