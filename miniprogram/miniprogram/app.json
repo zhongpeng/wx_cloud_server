@@ -3,13 +3,14 @@
     "pages/index/index"
   ],
   "window": {
-    "navigationBarTitleText": "影视数据展示",
-    "navigationBarBackgroundColor": "#1989fa",
+    "navigationBarTitleText": "私厨",
+    "navigationBarBackgroundColor": "#b406e9",
     "navigationBarTextStyle": "white"
   },
   "usingComponents": {
     "van-button": "@vant/weapp/button/index",
-    "van-loading": "@vant/weapp/loading/index"
+    "van-loading": "@vant/weapp/loading/index",
+     "van-icon": "@vant/weapp/icon/index"
   },
   "sitemapLocation": "sitemap.json"
 }

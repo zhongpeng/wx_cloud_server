@@ -54,6 +54,36 @@ router.get('/dishCategory', async function (req, res, next) {
   }
 })
 
+router.post('/addDishCategory', async function (req, res, next) {
+  try {
+    const { name } = req.body;
+    if (!name) {
+      return res.status(400).json({
+        success: false,
+        message: '分类名称不能为空'
+      });
+    }
+
+    const result = await mysql.query(
+      'INSERT INTO category (name) VALUES (?)',
+      [name]
+    );
+
+    res.json({
+      success: true,
+      data: {
+        id: result.data.insertId,
+        name: name
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: '添加分类失败',
+      error: error.message
+    });
+  }
+});
 
 
 
