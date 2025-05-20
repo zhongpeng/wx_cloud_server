@@ -47,8 +47,8 @@ router.get('/media', async function (req, res, next) {
     const { 
       page = 1, 
       pageSize = 10,
-      country,
-      genre,
+      countries,
+      genres,
       category,
       sort = 'year',
       order = 'desc'
@@ -67,13 +67,13 @@ router.get('/media', async function (req, res, next) {
     const params = [];
     
     // 2. 优化SQL查询条件
-    if (country) {
-      baseSql += ' AND country = ?';
-      params.push(country);
+    if (countries) {
+      baseSql += ' AND countries = ?';
+      params.push(countries);
     }
-    if (genre) {
-      baseSql += ' AND genre LIKE ?';
-      params.push(`%${genre}%`);
+    if (genres) {
+      baseSql += ' AND genres LIKE ?';
+      params.push(`%${genres}%`);
     }
     if (category && ['TV', 'movie'].includes(category)) {
       baseSql += ' AND category = ?';
@@ -84,7 +84,7 @@ router.get('/media', async function (req, res, next) {
     const [countResult, result] = await Promise.all([
       mysql.query(`SELECT COUNT(*) as total ${baseSql}`, params),
       mysql.query(
-        `SELECT id, title, thumbnail, year, rating, country, genre, category 
+        `SELECT id, title, thumbnail, year, rating, countries, genres, category 
          ${baseSql} 
          ORDER BY ${mysql.escapeId(sort)} ${order === 'asc' ? 'ASC' : 'DESC'} 
          LIMIT ?, ?`, 
@@ -99,7 +99,7 @@ router.get('/media', async function (req, res, next) {
         total: countResult.data[0].total,
         page: parseInt(page),
         pageSize: parseInt(pageSize),
-        filters: { country, genre, category },
+        filters: { countries, genres, category },
         sort: { field: sort, order }
       }
     });
@@ -113,4 +113,5 @@ router.get('/media', async function (req, res, next) {
     });
   }
 });
+
 module.exports = router
