@@ -27,11 +27,26 @@ Page({
     categories: ['全部']
   },
 
+
+  async loadDishCategory(){
+    try {
+      const response = await callContainer('/dishCategory');
+      const categoriesData = response.data.data;
+      const categories = ['全部',...categoriesData.map(item => item.category)];
+      console.log('categories:', categories); // 添加调试日志
+      this.setData({
+        categories
+      });
+    } catch (e) {
+      errorInfo('加载分类失败')
+    }
+  },
+
   onLoad() {
-    this.loadCountries();
-    this.loadCategories();
-    this.loadMediaGenres();
-    this.loadMediaData();
+    this.loadDishCategory();
+    // this.loadCategories();
+    // this.loadMediaGenres();
+    // this.loadMediaData();
   },
 
   /**

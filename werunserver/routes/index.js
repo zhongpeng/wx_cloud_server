@@ -36,6 +36,29 @@ router.get('/dish', async function (req, res, next) {
 })
 
 /**
+ * 查询菜品分类数据
+ */
+router.get('/dishCategory', async function (req, res, next) {
+  try {
+    const result = await mysql.query('SELECT * FROM `category` LIMIT 50 OFFSET 0')
+    res.json({
+      success: true,
+      data: result.data
+    })
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: '查询菜品数据失败',
+      error: error.message
+    })
+  }
+})
+
+
+
+
+
+/**
  * 查询电影数据（新增类型筛选）
  */
 router.get('/media', async function (req, res, next) {
