@@ -14,14 +14,13 @@
 
   <!-- 排序区域 -->
   <view class="sort-area">
-    <view class="sort-item {{sort.primary === 'year' || sort.secondary === 'year' ? 'active' : ''}}" data-field="year" bindtap="handleSortChange">
+    <view class="sort-item active" data-field="year" bindtap="handleSortChange">
       年份
-      <text wx:if="{{sort.primary === 'year'}}">{{sort.primaryOrder === 'asc' ? '↑' : '↓'}}</text>
-      <text wx:if="{{sort.secondary === 'year'}}">({{sort.secondaryOrder === 'asc' ? '↑' : '↓'}})</text>
+      <text class="sort-item active">{{yearSort==="desc"?"↓":"↑"}}</text>
     </view>
-    <view class="sort-item {{sort.primary === 'rating' || sort.secondary === 'rating' ? 'active' : ''}}" data-field="rating" bindtap="handleSortChange">
+    <view class="sort-item active" data-field="rating" bindtap="handleSortChange">
       评分
-      <text wx:if="{{sort.primary === 'rating'}}">{{sort.primaryOrder === 'asc' ? '↑' : '↓'}}</text>
+      <text class="sort-item active">{{ratingSort==="desc"?"↓":"↑"}}</text>
     </view>
   </view>
 

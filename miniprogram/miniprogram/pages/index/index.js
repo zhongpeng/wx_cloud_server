@@ -18,10 +18,8 @@ Page({
       category: ''
     },
     sort: {
-      primary: 'year', // 主排序字段
-      secondary: 'rating', // 次排序字段
-      primaryOrder: 'desc', // 主排序顺序
-      secondaryOrder: 'desc' // 次排序顺序
+      yearSort: 'desc', // 次排序字段
+      ratingSort: 'desc'
     },
     loading: false,
     countries: ['全部'],
@@ -109,13 +107,10 @@ Page({
         category
       } = this.data.filters;
       const {
-        primary,
-        secondary,
-        primaryOrder,
-        secondaryOrder
+        yearSort,
+        ratingSort
       } = this.data.sort;
-
-      const path = `/media?page=${page}&pageSize=${pageSize}&countries=${encodeURIComponent(countries)}&genres=${encodeURIComponent(genres)}&category=${category}&primarySort=${primary}&primaryOrder=${primaryOrder}&secondarySort=${secondary}&secondaryOrder=${secondaryOrder}`;
+      const path = `/media?page=${page}&pageSize=${pageSize}&countries=${encodeURIComponent(countries)}&genres=${encodeURIComponent(genres)}&category=${category}&yearSort=${yearSort}&ratingSort=${ratingSort}`;
       const response = await callContainer(path)
       const newData = response.data.data;
       console.log('API返回数据:', newData); // 添加调试日志
@@ -201,27 +196,20 @@ Page({
   // 排序变化
   handleSortChange(e) {
     const { field } = e.currentTarget.dataset;
+    let yearSort = this.data.sort.yearSort;
+    let ratingSort = this.data.ratingSort;
+    if (field == 'yead') {
+      yearSort = yearSort == "desc" ? "ace" : "desc";
+    } else {
+      ratingSort = ratingSort == "desc" ? "ace" : "desc";
+    }
     this.setData(prev => {
-      // 如果点击的是当前主排序字段，则切换排序顺序
-      if (prev.sort.primary === field) {
-        return {
-          sort: {
-            ...prev.sort,
-            primaryOrder: prev.sort.primaryOrder === 'asc' ? 'desc' : 'asc'
-          }
-        };
-      } 
-      // 否则设置为新的主排序字段，原主排序变为次排序
-      else {
-        return {
-          sort: {
-            primary: field,
-            secondary: prev.sort.primary,
-            primaryOrder: 'desc',
-            secondaryOrder: prev.sort.primaryOrder
-          }
-        };
-      }
+      return {
+        sort: {
+          yearSort: yearSort,
+          ratingSort: ratingSort
+        }
+      };
     }, () => {
       this.resetAndLoad();
     });

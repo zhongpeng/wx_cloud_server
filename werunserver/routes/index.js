@@ -80,20 +80,15 @@ router.get('/media', async function (req, res, next) {
       params.push(category);
     }
 
-    // 处理多字段排序
-    const sortFields = [req.query.primary, req.query.secondary || 'rating'].filter(Boolean);
-    const orderDirections = [req.query.primaryOrder, req.query.secondaryOrder || 'desc'].filter(Boolean);
-    // 验证排序字段
-    const safeSort = sortFields
-      .map((field, index) => `${field} ${orderDirections[index] || 'desc'}`)
-      .join(', ');
+    const yearSort = req.query.yearSort || 'desc'; // 默认按年份降序排序
+    const ratingSort = req.query.ratingSort || 'desc'; // 默认按评分降序排序
 
     const [countResult, result] = await Promise.all([
       mysql.query(`SELECT COUNT(*) as total ${baseSql}`, params),
       mysql.query(
         `SELECT id, title, thumbnail, year, rating,rating_count, countries, genres, category 
         ${baseSql} 
-        ORDER BY ${safeSort || 'year DESC, rating DESC'} 
+        ORDER BY year ${yearSort}, rating ${ratingSort}
         LIMIT ?, ?`,
         [...params, offset, parseInt(pageSize)]
       )
