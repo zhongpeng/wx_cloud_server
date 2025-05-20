@@ -85,6 +85,36 @@ router.post('/addDishCategory', async function (req, res, next) {
   }
 });
 
+// 更新分类
+router.post('/updateCategory', async function(req, res, next) {
+  try {
+    const { id, name } = req.body;
+    await mysql.query('UPDATE category SET name = ? WHERE id = ?', [name, id]);
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: '更新分类失败',
+      error: error.message
+    });
+  }
+});
+
+// 删除分类
+router.post('/deleteCategory', async function(req, res, next) {
+  try {
+    const { id } = req.body;
+    await mysql.query('DELETE FROM category WHERE id = ?', [id]);
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: '删除分类失败',
+      error: error.message
+    });
+  }
+});
+
 
 
 

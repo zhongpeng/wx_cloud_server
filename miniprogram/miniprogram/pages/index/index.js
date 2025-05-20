@@ -23,7 +23,9 @@ Page({
       });
       // 默认加载第一个分类的菜品
       if (categories.length > 0) {
-        this.setData({ activeCategory: categories[0].id });
+        this.setData({
+          activeCategory: categories[0].id
+        });
         this.loadDishesByCategory(categories[0].id);
       }
     } catch (e) {
@@ -32,7 +34,9 @@ Page({
   },
 
   async loadDishesByCategory(categoryId) {
-    this.setData({ loading: true });
+    this.setData({
+      loading: true
+    });
     try {
       const response = await callContainer(`/dish?category=${categoryId}`);
       this.setData({
@@ -41,7 +45,9 @@ Page({
       });
     } catch (e) {
       errorInfo('加载菜品失败');
-      this.setData({ loading: false });
+      this.setData({
+        loading: false
+      });
     }
   },
 
@@ -58,11 +64,16 @@ Page({
     const id = e.currentTarget.dataset.id;
     const dishList = this.data.dishList.map(item => {
       if (item.id === id) {
-        return { ...item, isFavorite: !item.isFavorite };
+        return {
+          ...item,
+          isFavorite: !item.isFavorite
+        };
       }
       return item;
     });
-    this.setData({ dishList });
+    this.setData({
+      dishList
+    });
   },
 
   addToCart(e) {
@@ -87,36 +98,9 @@ Page({
       }
     });
   },
-
-  async addDishCategory(name) {
-    try {
-      const response = await callContainer('/addDishCategory', {
-        name: name
-      }, 'POST');
-      
-      if (response.data.success) {
-        wx.showToast({
-          title: '添加成功',
-          icon: 'success'
-        });
-        // 重新加载分类数据
-        this.loadDishCategory();
-      }
-    } catch (e) {
-      errorInfo('添加分类失败');
-    }
-  },
-
-  showAddCategoryDialog() {
-    wx.showModal({
-      title: '添加分类',
-      content: '请输入分类名称',
-      editable: true,
-      success: (res) => {
-        if (res.confirm && res.content) {
-          this.addDishCategory(res.content);
-        }
-      }
+  navigateToCategoryManage() {
+    wx.navigateTo({
+      url: '/pages/categoryManage/categoryManage'
     });
   },
 

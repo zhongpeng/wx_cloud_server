@@ -1,4 +1,5 @@
-const callContainer = (path, method = 'GET', data = null) => {
+const callContainer = (path, method, data = null) => {
+  method = method?method:'GET'
   return wx.cloud.callContainer({
     path,
     method,

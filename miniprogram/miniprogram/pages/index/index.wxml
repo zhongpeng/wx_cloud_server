@@ -4,48 +4,44 @@
     <text class="title">私厨</text>
     <view class="add-dish-text" style="color: #b406e9;" bindtap="showAddDishDialog">+ 添加餐品</view>
   </view>
-  
+
   <!-- 左右分栏布局 -->
   <view class="menu-container">
     <!-- 左侧分类导航 -->
     <scroll-view scroll-y class="category-list">
       <block wx:for="{{categories}}" wx:key="id">
-        <view 
-          class="category-item {{activeCategory === item.id ? 'active' : ''}}"
-          bindtap="handleCategoryChange"
-          data-id="{{item.id}}"
-        >
+        <view class="category-item {{activeCategory === item.id ? 'active' : ''}}" bindtap="handleCategoryChange" data-id="{{item.id}}">
           {{item.name}}
         </view>
       </block>
-      <view class="add-category-text" bindtap="showAddCategoryDialog">+ 添加分类</view>
+      <view class="add-category-text" bindtap="navigateToCategoryManage">分类管理</view>
     </scroll-view>
-    
+
     <!-- 右侧菜品列表 -->
     <scroll-view scroll-y class="dish-list">
       <block wx:for="{{dishList}}" wx:key="id">
         <view class="dish-item">
           <image src="{{item.image_url}}" mode="aspectFill" class="dish-image"></image>
-          
+
           <view class="dish-content">
             <!-- 第一行：名称 -->
             <view class="dish-header">
               <text class="dish-name">{{item.name}}</text>
-              <van-icon name="star" size="20px" color="{{item.favorite ? '#b406e9' : '#c8c9cc'}}" bind:click="toggleFavorite" data-id="{{item.id}}"/>
+              <van-icon name="star" size="20px" color="{{item.favorite ? '#b406e9' : '#c8c9cc'}}" bind:click="toggleFavorite" data-id="{{item.id}}" />
             </view>
-            
+
             <!-- 第二行：预计制作时间 -->
             <view class="estimated-time">预计：{{item.estimated_time}}分钟</view>
-            
+
             <!-- 第三行：描述 -->
             <view class="dish-desc">{{item.description}}</view>
-            
+
             <view class="dish-footer">
               <view class="order-count">
-                <van-icon name="like" size="16px" color="#b406e9"/>
+                <van-icon name="like" size="16px" color="#b406e9" />
                 <text>{{item.order_count}}</text>
               </view>
-              <van-icon name="add" size="24px" color="#b406e9" bind:click="addToCart" data-id="{{item.id}}"/>
+              <van-icon name="add" size="24px" color="#b406e9" bind:click="addToCart" data-id="{{item.id}}" />
             </view>
           </view>
         </view>
