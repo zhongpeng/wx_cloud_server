@@ -42,6 +42,11 @@ router.get('/dish', async function (req, res, next) {
 /**
  * 查询电影数据（新增类型筛选）
  */
+// ... existing code ...
+
+/**
+ * 查询电影数据（新增类型筛选）
+ */
 router.get('/media', async function (req, res, next) {
   try {
     const { 
@@ -54,7 +59,6 @@ router.get('/media', async function (req, res, next) {
       order = 'desc'
     } = req.query;
 
-    // 1. 添加参数验证
     if (pageSize > 100) {
       return res.status(400).json({
         success: false,
@@ -66,7 +70,6 @@ router.get('/media', async function (req, res, next) {
     let baseSql = 'FROM media WHERE 1=1';
     const params = [];
     
-    // 2. 优化SQL查询条件
     if (countries) {
       baseSql += ' AND countries = ?';
       params.push(countries);
@@ -80,13 +83,22 @@ router.get('/media', async function (req, res, next) {
       params.push(category);
     }
     
-    // 3. 分两个独立查询提高性能
+    // 检查 sort 字段是否合法
+    const validSortFields = ['id', 'title', 'thumbnail', 'year', 'rating', 'countries', 'genres', 'category'];
+    if (!validSortFields.includes(sort)) {
+      return res.status(400).json({
+        success: false,
+        message: '无效的排序字段'
+      });
+    }
+    const safeSort = mysql.escapeId(sort);
+
     const [countResult, result] = await Promise.all([
       mysql.query(`SELECT COUNT(*) as total ${baseSql}`, params),
       mysql.query(
         `SELECT id, title, thumbnail, year, rating, countries, genres, category 
          ${baseSql} 
-         ORDER BY ${mysql.escapeId(sort)} ${order === 'asc' ? 'ASC' : 'DESC'} 
+         ORDER BY ${safeSort} ${order === 'asc' ? 'ASC' : 'DESC'} 
          LIMIT ?, ?`, 
         [...params, offset, parseInt(pageSize)]
       )
@@ -113,5 +125,7 @@ router.get('/media', async function (req, res, next) {
     });
   }
 });
+
+// ... existing code ...
 
 module.exports = router

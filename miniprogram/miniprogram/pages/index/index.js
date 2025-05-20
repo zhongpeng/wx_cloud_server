@@ -66,7 +66,7 @@ Page({
       const { field, order } = this.data.sort;
       
       const response = await wx.cloud.callContainer({
-        path: `/media?page=${page}&pageSize=${pageSize}&country=${country}&genre=${genre}&category=${category}&sort=${field}&order=${order}`,
+        path: `/media?page=${page}&pageSize=${pageSize}&countries=${country}&genres=${genre}&category=${category}&sort=${field}&order=${order}`,
         method: "GET",
         header: {
           'X-WX-SERVICE': 'ordering-system'
