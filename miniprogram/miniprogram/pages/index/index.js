@@ -88,15 +88,33 @@ Page({
     });
   },
 
-  showAddDishDialog() {
+  async addDishCategory(name) {
+    try {
+      const response = await callContainer('/addDishCategory', {
+        name: name
+      }, 'POST');
+      
+      if (response.data.success) {
+        wx.showToast({
+          title: '添加成功',
+          icon: 'success'
+        });
+        // 重新加载分类数据
+        this.loadDishCategory();
+      }
+    } catch (e) {
+      errorInfo('添加分类失败');
+    }
+  },
+
+  showAddCategoryDialog() {
     wx.showModal({
-      title: '添加菜品',
-      content: '请输入菜品信息',
+      title: '添加分类',
+      content: '请输入分类名称',
       editable: true,
       success: (res) => {
         if (res.confirm && res.content) {
-          // 调用添加菜品API
-          console.log('添加菜品:', res.content);
+          this.addDishCategory(res.content);
         }
       }
     });

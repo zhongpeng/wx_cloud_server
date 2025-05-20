@@ -154,9 +154,9 @@ router.get('/media', async function (req, res, next) {
         page: parseInt(page),
         pageSize: parseInt(pageSize),
         filters: { countries, genres, category },
-        sort: { 
+        sort: {
           yearSort: yearSort || 'desc',
-          ratingSort: ratingSort || 'desc' 
+          ratingSort: ratingSort || 'desc'
         }
       }
     });
