@@ -43,9 +43,9 @@ Page({
     
     try {
       if (category.isNew) {
-        await callContainer('/addDishCategory', { name: category.name }, 'POST');
+        await callContainer('/addDishCategory', 'POST',{ name: category.name });
       } else {
-        await callContainer('/updateCategory', { id, name: category.name }, 'POST');
+        await callContainer('/updateCategory','POST', { id, name: category.name }, );
       }
       wx.showToast({ title: '保存成功' });
       this.loadCategories();
@@ -57,7 +57,7 @@ Page({
   async deleteCategory(e) {
     const { id } = e.currentTarget.dataset;
     try {
-      await callContainer('/deleteCategory', { id }, 'POST');
+      await callContainer('/deleteCategory',  'POST',{ id },);
       wx.showToast({ title: '删除成功' });
       this.loadCategories();
     } catch (e) {
