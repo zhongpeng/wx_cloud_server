@@ -75,7 +75,7 @@ router.get('/media', async function (req, res, next) {
     }
 
 
-    if (category && ['TV', 'movie'].includes(category)) {
+    if (category) {
       baseSql += ' AND category = ?';
       params.push(category);
     }
