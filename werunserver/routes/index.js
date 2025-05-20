@@ -91,8 +91,8 @@ router.get('/media', async function (req, res, next) {
         message: '无效的排序字段'
       });
     }
-    const safeSort = mysql.escapeId(sort);
-
+    
+    const safeSort = sort;
     const [countResult, result] = await Promise.all([
       mysql.query(`SELECT COUNT(*) as total ${baseSql}`, params),
       mysql.query(
