@@ -80,8 +80,7 @@ router.get('/media', async function (req, res, next) {
       params.push(category);
     }
 
-    const yearSort = req.query.yearSort || 'desc'; // 默认按年份降序排序
-    const ratingSort = req.query.ratingSort || 'desc'; // 默认按评分降序排序
+    const { yearSort, ratingSort } = req.query;
 
     const [countResult, result] = await Promise.all([
       mysql.query(`SELECT COUNT(*) as total ${baseSql}`, params),
@@ -102,7 +101,10 @@ router.get('/media', async function (req, res, next) {
         page: parseInt(page),
         pageSize: parseInt(pageSize),
         filters: { countries, genres, category },
-        sort: { field: sort, order }
+        sort: { 
+          yearSort: yearSort || 'desc',
+          ratingSort: ratingSort || 'desc' 
+        }
       }
     });
 

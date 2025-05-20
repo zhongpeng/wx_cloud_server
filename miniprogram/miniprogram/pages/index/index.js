@@ -18,8 +18,8 @@ Page({
       category: ''
     },
     sort: {
-      yearSort: 'desc', // 次排序字段
-      ratingSort: 'desc'
+      yearSort: '', // 次排序字段
+      ratingSort: ''
     },
     loading: false,
     countries: ['全部'],
@@ -106,10 +106,7 @@ Page({
         genres,
         category
       } = this.data.filters;
-      const {
-        yearSort,
-        ratingSort
-      } = this.data.sort;
+      const { yearSort, ratingSort } = this.data.sort;
       const path = `/media?page=${page}&pageSize=${pageSize}&countries=${encodeURIComponent(countries)}&genres=${encodeURIComponent(genres)}&category=${category}&yearSort=${yearSort}&ratingSort=${ratingSort}`;
       const response = await callContainer(path)
       const newData = response.data.data;
@@ -178,42 +175,20 @@ Page({
   },
 
 
-  // 新增排序处理函数
-  getNewSortState(prevSort, field) {
-    const isSameField = prevSort.primary === field;
-    const newOrder = isSameField ?
-      (prevSort.primaryOrder === 'asc' ? 'desc' : 'asc') :
-      'asc';
-
-    return {
-      primary: field,
-      primaryOrder: newOrder,
-      secondary: isSameField ? prevSort.secondary : field,
-      secondaryOrder: isSameField ? prevSort.secondaryOrder : 'desc'
-    };
-  },
-
-  // 排序变化
   handleSortChange(e) {
     const { field } = e.currentTarget.dataset;
-    let yearSort = this.data.sort.yearSort;
-    let ratingSort = this.data.ratingSort;
-    if (field == 'yead') {
-      yearSort = yearSort == "desc" ? "ace" : "desc";
-    } else {
-      ratingSort = ratingSort == "desc" ? "ace" : "desc";
-    }
     this.setData(prev => {
+      const newSort = {...prev.sort};
+      // 确保这里正确切换排序顺序
+      newSort[`${field}Sort`] = newSort[`${field}Sort`] === 'desc' ? 'asc' : 'desc';
       return {
-        sort: {
-          yearSort: yearSort,
-          ratingSort: ratingSort
-        }
+        sort: newSort
       };
     }, () => {
       this.resetAndLoad();
     });
   },
+
 
   // 滚动到底部加载更多
   onReachBottom() {
