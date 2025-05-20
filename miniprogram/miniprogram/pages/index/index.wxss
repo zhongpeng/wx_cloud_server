@@ -2,6 +2,8 @@
   display: flex;
   flex-direction: column;
   height: 100vh;
+  padding-left: 30rpx;
+  padding-right: 30rpx;
 }
 
 .filter-area, .sort-area {

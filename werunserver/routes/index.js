@@ -2,7 +2,6 @@ const express = require('express')
 const mysql = require('../work/mysql')
 const router = express.Router()
 
-
 router.get('/', async function (req, res, next) {
   const r = await mysql.query('SELECT  COUNT(*) id FROM  app_express')
   res.render('index', {
@@ -36,14 +35,6 @@ router.get('/dish', async function (req, res, next) {
   }
 })
 
-// ... existing code ...
-
-
-/**
- * 查询电影数据（新增类型筛选）
- */
-// ... existing code ...
-
 /**
  * 查询电影数据（新增类型筛选）
  */
@@ -71,13 +62,19 @@ router.get('/media', async function (req, res, next) {
     const params = [];
 
     if (countries) {
+      countries = decodeURIComponent(countries);
       baseSql += ' AND countries = ?';
       params.push(countries);
     }
+
     if (genres) {
+      // 对genres参数进行解码处理
+      const decodedGenres = decodeURIComponent(genres);
       baseSql += ' AND genres LIKE ?';
-      params.push(`%${genres}%`);
+      params.push(`%${decodedGenres}%`);
     }
+
+
     if (category && ['TV', 'movie'].includes(category)) {
       baseSql += ' AND category = ?';
       params.push(category);
@@ -129,6 +126,90 @@ router.get('/media', async function (req, res, next) {
   }
 });
 
-// ... existing code ...
+/**
+ * 国家分布统计查询
+ */
+router.get('/mediaCountries', async function (req, res, next) {
+  try {
+    const result = await mysql.query(`
+      SELECT 
+        countries,
+        COUNT(*) as count
+      FROM media
+      WHERE countries IS NOT NULL AND countries != ''
+      GROUP BY countries
+      ORDER BY count DESC
+    `);
+
+    res.json({
+      success: true,
+      data: result.data
+    });
+  } catch (error) {
+    console.error('国家分布统计查询错误:', error);
+    res.status(500).json({
+      success: false,
+      message: '查询国家分布统计失败',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * 类型分布统计查询
+ */
+router.get('/mediaGenres', async function (req, res, next) {
+  try {
+    const result = await mysql.query(`
+      SELECT
+        genres,
+        COUNT(*) as count
+      FROM media
+      WHERE genres IS NOT NULL AND genres!= ''
+      GROUP BY genres
+      ORDER BY count DESC
+    `);
+    res.json({
+      success: true,
+      data: result.data
+    });
+  } catch (error) {
+    console.error('类型分布统计查询错误:', error);
+    res.status(500).json({
+      success: false,
+      message: '查询类型分布统计失败',
+      error: error.message
+    });
+  }
+})
+
+/**
+ * 分类统计查询
+ */
+router.get('/category', async function (req, res, next) {
+  try {
+    const result = await mysql.query(`
+      SELECT
+        category,
+        COUNT(*) as count
+      FROM media
+      WHERE category IS NOT NULL AND category!= ''
+      GROUP BY category
+      ORDER BY count DESC
+    `);
+    res.json({
+      success: true,
+      data: result.data
+    });
+  } catch (error) {
+    console.error('查询分类统计失败:', error);
+    res.status(500).json({
+      success: false,
+      message: '查询分类统计失败',
+      error: error.message
+    });
+  }
+})
+
 
 module.exports = router

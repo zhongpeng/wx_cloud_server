@@ -1,42 +1,36 @@
 <view class="container">
   <!-- 筛选区域 -->
   <view class="filter-area">
-    <picker mode="selector" range-countries="{{countries}}" bindchange="handleCountryChange">
-      <view>国家: {{filters.country || '全部'}}</view>
+    <picker mode="selector" range="{{countries}}" bindchange="handleCountryChange">
+      <view class="filter-item">国家: {{filters.country || '全部'}}</view>
     </picker>
-    <picker mode="selector" range-genres="{{genres}}" bindchange="handleGenreChange">
-      <view>类型: {{filters.genre || '全部'}}</view>
+    <picker mode="selector" range="{{genres}}" bindchange="handleGenreChange">
+      <view class="filter-item">类型: {{filters.genre || '全部'}}</view>
     </picker>
-    <picker mode="selector" range="{{['全部','TV','movie']}}" bindchange="handleCategoryChange">
-      <view>分类: {{filters.category || '全部'}}</view>
+    <picker mode="selector" range="{{categories}}" bindchange="handleCategoryChange">
+      <view class="filter-item">分类: {{filters.category || '全部'}}</view>
     </picker>
   </view>
 
   <!-- 排序区域 -->
   <view class="sort-area">
-    <view class="sort-item {{sort.field === 'year' ? 'active' : ''}}" 
-          bindtap="handleSortChange" data-field="year">
-      年份 {{sort.field === 'year' ? (sort.order === 'desc' ? '↓' : '↑') : ''}}
+    <view class="sort-item {{sort.field === 'year' ? 'active' : ''}}" data-field="year" data-order="{{sort.field === 'year' && sort.order === 'asc' ? 'desc' : 'asc'}}" bindtap="handleSortChange">
+      年份 {{sort.field === 'year' ? (sort.order === 'asc' ? '↑' : '↓') : ''}}
     </view>
-    <view class="sort-item {{sort.field === 'rating' ? 'active' : ''}}" 
-          bindtap="handleSortChange" data-field="rating">
-      评分 {{sort.field === 'rating' ? (sort.order === 'desc' ? '↓' : '↑') : ''}}
+    <view class="sort-item {{sort.field === 'rating' ? 'active' : ''}}" data-field="rating" data-order="{{sort.field === 'rating' && sort.order === 'asc' ? 'desc' : 'asc'}}" bindtap="handleSortChange">
+      评分 {{sort.field === 'rating' ? (sort.order === 'asc' ? '↑' : '↓') : ''}}
     </view>
   </view>
 
   <!-- 内容区域 -->
-  <scroll-view scroll-y class="content-area">
-    <view class="media-list">
-      <block wx:for="{{mediaData.list}}" wx:key="id">
-        <view class="media-item">
-          <image src="{{item.thumbnail}}" mode="aspectFill"></image>
-          <view class="info">
-            <text class="title">{{item.title}}</text>
-            <text class="meta">{{item.year}} · {{item.country}}</text>
-            <text class="rating">评分: {{item.rating}}</text>
-          </view>
-        </view>
-      </block>
+  <scroll-view scroll-y class="content-area" bindscrolltolower="onReachBottom">
+    <view wx:for="{{mediaData.list}}" wx:key="id" class="media-item">
+      <image src="{{item.thumbnail}}" mode="aspectFill"></image>
+      <view class="info">
+        <text class="title">{{item.title}}</text>
+        <text class="meta">{{item.year}} · {{item.country}}</text>
+        <text class="rating">评分: {{item.rating}}</text>
+      </view>
     </view>
 
     <view wx:if="{{loading}}" class="loading">加载中...</view>

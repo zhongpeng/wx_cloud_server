@@ -7,29 +7,49 @@ Page({
       pageSize: 10
     },
     filters: {
-      country: '',
-      genre: '',
+      countries: '',
+      genres: '',
       category: ''
     },
     sort: {
       field: 'year',
       order: 'desc'
     },
-    loading: false
+    loading: false,
+    countries: ['全部', '中国', '美国', '日本', '韩国', '英国'],
+    genres: ['全部', '动作', '喜剧', '爱情', '科幻', '恐怖'],
+    categories: ['全部', 'TV', 'movie']
   },
 
   onLoad() {
     this.loadMediaData();
   },
 
-  // 筛选条件变化
-  handleFilterChange(e) {
-    const { field, value } = e.detail;
+  // 国家筛选变化
+  handlecountriesChange(e) {
+    const value = this.data.countries[e.detail.value];
     this.setData({
-      filters: {
-        ...this.data.filters,
-        [field]: value
-      }
+      'filters.countries': value === '全部' ? '' : value
+    }, () => {
+      this.resetAndLoad();
+    });
+  },
+
+  // 类型筛选变化
+  handleGenreChange(e) {
+    const value = this.data.genres[e.detail.value];
+    this.setData({
+      'filters.genres': value === '全部' ? '' : value
+    }, () => {
+      this.resetAndLoad();
+    });
+  },
+
+  // 分类筛选变化
+  handleCategoryChange(e) {
+    const value = this.data.categories[e.detail.value];
+    this.setData({
+      'filters.category': value === '全部' ? '' : value
     }, () => {
       this.resetAndLoad();
     });
@@ -37,9 +57,9 @@ Page({
 
   // 排序变化
   handleSortChange(e) {
-    console.log(e.currentTarget.dataset)
+    const { field, order } = e.currentTarget.dataset;
     this.setData({
-      sort: e.currentTarget.dataset
+      sort: { field, order }
     }, () => {
       this.resetAndLoad();
     });
@@ -62,11 +82,11 @@ Page({
     this.setData({ loading: true });
     try {
       const { page, pageSize } = this.data.mediaData;
-      const { country, genre, category } = this.data.filters;
+      const { countries, genres, category } = this.data.filters;
       const { field, order } = this.data.sort;
       
       const response = await wx.cloud.callContainer({
-        path: `/media?page=${page}&pageSize=${pageSize}&countries=${country}&genres=${genre}&category=${category}&sort=${field}&order=${order}`,
+        path: `/media?page=${page}&pageSize=${pageSize}&countries=${encodeURIComponent(countries)}&genres=${encodeURIComponent(genres)}&category=${category}&sort=${field}&order=${order}`,
         method: "GET",
         header: {
           'X-WX-SERVICE': 'ordering-system'
