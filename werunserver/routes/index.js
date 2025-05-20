@@ -81,16 +81,11 @@ router.get('/media', async function (req, res, next) {
     }
 
     // 处理多字段排序
-    const sortFields = (req.query.primarySort || 'year,rating').split(',');
-    const orderDirections = (req.query.primaryOrder || 'desc,desc').split(',');
+    const sortFields = [req.query.primary, req.query.secondary || 'rating'].filter(Boolean);
+    const orderDirections = [req.query.primaryOrder, req.query.secondaryOrder || 'desc'].filter(Boolean);
     // 验证排序字段
-    const validSortFields = ['id', 'title', 'thumbnail', 'year', 'rating','rating_count','countries', 'genres', 'category'];
     const safeSort = sortFields
-      .filter((field, index) =>
-        validSortFields.includes(field) &&
-        ['asc', 'desc'].includes(orderDirections[index])
-      )
-      .map((field, index) => `${field} ${orderDirections[index]}`)
+      .map((field, index) => `${field} ${orderDirections[index] || 'desc'}`)
       .join(', ');
 
     const [countResult, result] = await Promise.all([

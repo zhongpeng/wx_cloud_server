@@ -22,7 +22,6 @@
     <view class="sort-item {{sort.primary === 'rating' || sort.secondary === 'rating' ? 'active' : ''}}" data-field="rating" bindtap="handleSortChange">
       评分
       <text wx:if="{{sort.primary === 'rating'}}">{{sort.primaryOrder === 'asc' ? '↑' : '↓'}}</text>
-      <text wx:if="{{sort.secondary === 'rating'}}">({{sort.secondaryOrder === 'asc' ? '↑' : '↓'}})</text>
     </view>
   </view>
 

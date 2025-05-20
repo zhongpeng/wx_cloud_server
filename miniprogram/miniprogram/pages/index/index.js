@@ -4,7 +4,6 @@ const {
 const {
   errorInfo
 } = require('../../utils/error.js');
-
 Page({
   data: {
     mediaData: {
@@ -28,6 +27,13 @@ Page({
     countries: ['全部'],
     genres: ['全部'],
     categories: ['全部']
+  },
+
+  onLoad() {
+    this.loadCountries();
+    this.loadCategories();
+    this.loadMediaGenres();
+    this.loadMediaData();
   },
 
   /**
@@ -73,76 +79,6 @@ Page({
     } catch (e) {
       errorInfo('加载分类失败')
     }
-  },
-
-  /**
-   * 格式化评价人数
-   */
-  formatRatingCount(count) {
-    console.log('当前评分人数:', count); // 添加调试日志
-    if (!count) return '0人评分';
-    if (count >= 10000) return `${(count / 10000).toFixed(1)}万人评分`;
-    if (count >= 1000) return `${(count / 1000).toFixed(1)}千人评分`;
-    return `${count}人评分`;
-  },
-
-
-  onLoad() {
-    this.loadCountries();
-    this.loadCategories();
-    this.loadMediaGenres();
-    this.loadMediaData();
-
-  },
-
-  // 国家筛选变化
-  handleCountriesChange(e) {
-    const value = this.data.countries[e.detail.value];
-    this.setData({
-      'filters.countries': value === '全部' ? '' : value
-    }, () => {
-      this.resetAndLoad();
-    });
-  },
-
-  // 类型筛选变化
-  handleGenreChange(e) {
-    const value = this.data.genres[e.detail.value];
-    this.setData({
-      'filters.genres': value === '全部' ? '' : value
-    }, () => {
-      this.resetAndLoad();
-    });
-  },
-
-  // 分类筛选变化
-  handleCategoryChange(e) {
-    const value = this.data.categories[e.detail.value];
-    this.setData({
-      'filters.category': value === '全部' ? '' : value
-    }, () => {
-      this.resetAndLoad();
-    });
-  },
-
-  // 排序变化
-  handleSortChange(e) {
-    const {
-      field
-    } = e.currentTarget.dataset;
-    this.setData(prev => {
-      const newOrder = prev.sort.primary === field ?
-        (prev.sort.primaryOrder === 'asc' ? 'desc' : 'asc') : 'desc';
-      return {
-        sort: {
-          ...prev.sort,
-          primary: field,
-          primaryOrder: newOrder
-        }
-      };
-    }, () => {
-      this.resetAndLoad();
-    });
   },
 
   // 重置并重新加载
@@ -198,6 +134,97 @@ Page({
         loading: false
       });
     }
+  },
+
+
+
+  /**
+   * 格式化评价人数
+   */
+  formatRatingCount(count) {
+    console.log('当前评分人数:', count); // 添加调试日志
+    if (!count) return '0人评分';
+    if (count >= 10000) return `${(count / 10000).toFixed(1)}万人评分`;
+    if (count >= 1000) return `${(count / 1000).toFixed(1)}千人评分`;
+    return `${count}人评分`;
+  },
+
+
+
+
+  // 国家筛选变化
+  handleCountriesChange(e) {
+    const value = this.data.countries[e.detail.value];
+    this.setData({
+      'filters.countries': value === '全部' ? '' : value
+    }, () => {
+      this.resetAndLoad();
+    });
+  },
+
+  // 类型筛选变化
+  handleGenreChange(e) {
+    const value = this.data.genres[e.detail.value];
+    this.setData({
+      'filters.genres': value === '全部' ? '' : value
+    }, () => {
+      this.resetAndLoad();
+    });
+  },
+
+  // 分类筛选变化
+  handleCategoryChange(e) {
+    const value = this.data.categories[e.detail.value];
+    this.setData({
+      'filters.category': value === '全部' ? '' : value
+    }, () => {
+      this.resetAndLoad();
+    });
+  },
+
+
+  // 新增排序处理函数
+  getNewSortState(prevSort, field) {
+    const isSameField = prevSort.primary === field;
+    const newOrder = isSameField ?
+      (prevSort.primaryOrder === 'asc' ? 'desc' : 'asc') :
+      'asc';
+
+    return {
+      primary: field,
+      primaryOrder: newOrder,
+      secondary: isSameField ? prevSort.secondary : field,
+      secondaryOrder: isSameField ? prevSort.secondaryOrder : 'desc'
+    };
+  },
+
+  // 排序变化
+  handleSortChange(e) {
+    const { field } = e.currentTarget.dataset;
+    this.setData(prev => {
+      // 如果点击的是当前主排序字段，则切换排序顺序
+      if (prev.sort.primary === field) {
+        return {
+          sort: {
+            ...prev.sort,
+            primaryOrder: prev.sort.primaryOrder === 'asc' ? 'desc' : 'asc'
+          }
+        };
+      } 
+      // 否则设置为新的主排序字段，原主排序变为次排序
+      else {
+        return {
+          sort: {
+            primary: field,
+            secondary: prev.sort.primary,
+            primaryOrder: 'desc',
+            secondaryOrder: prev.sort.primaryOrder
+          }
+        };
+      }
+    }, () => {
+      this.resetAndLoad();
+    });
   },
 
   // 滚动到底部加载更多
