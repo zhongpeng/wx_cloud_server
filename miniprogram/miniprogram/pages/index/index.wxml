@@ -14,11 +14,15 @@
 
   <!-- 排序区域 -->
   <view class="sort-area">
-    <view class="sort-item {{sort.field === 'year' ? 'active' : ''}}" data-field="year" data-order="{{sort.field === 'year' && sort.order === 'asc' ? 'desc' : 'asc'}}" bindtap="handleSortChange">
-      年份 {{sort.field === 'year' ? (sort.order === 'asc' ? '↑' : '↓') : ''}}
+    <view class="sort-item {{sort.primary === 'year' || sort.secondary === 'year' ? 'active' : ''}}" data-field="year" bindtap="handleSortChange">
+      年份
+      <text wx:if="{{sort.primary === 'year'}}">{{sort.primaryOrder === 'asc' ? '↑' : '↓'}}</text>
+      <text wx:if="{{sort.secondary === 'year'}}">({{sort.secondaryOrder === 'asc' ? '↑' : '↓'}})</text>
     </view>
-    <view class="sort-item {{sort.field === 'rating' ? 'active' : ''}}" data-field="rating" data-order="{{sort.field === 'rating' && sort.order === 'asc' ? 'desc' : 'asc'}}" bindtap="handleSortChange">
-      评分 {{sort.field === 'rating' ? (sort.order === 'asc' ? '↑' : '↓') : ''}}
+    <view class="sort-item {{sort.primary === 'rating' || sort.secondary === 'rating' ? 'active' : ''}}" data-field="rating" bindtap="handleSortChange">
+      评分
+      <text wx:if="{{sort.primary === 'rating'}}">{{sort.primaryOrder === 'asc' ? '↑' : '↓'}}</text>
+      <text wx:if="{{sort.secondary === 'rating'}}">({{sort.secondaryOrder === 'asc' ? '↑' : '↓'}})</text>
     </view>
   </view>
 
@@ -30,9 +34,9 @@
         <!-- 第一行：名称 -->
         <text class="title">{{item.title}}</text>
         <!-- 第二行：国家和分类 -->
-        <text class="meta">{{item.category=="tv"?"剧集":"电影"}} ·  {{item.countries}}</text>
+        <text class="meta">{{item.category=="tv"?"剧集":"电影"}} · {{item.countries}} · {{item.year}}</text>
         <!-- 第三行：评分数据 -->
-        <text class="rating">评分: {{item.rating}} ({{item.ratingCount || 0}}人评分)</text>
+        <text class="rating">评分: {{item.rating}} ({{formatRatingCount(item.formattedRating)}})</text>
       </view>
     </view>
 

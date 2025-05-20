@@ -81,8 +81,8 @@ router.get('/media', async function (req, res, next) {
     }
 
     // 处理多字段排序
-    const sortFields = sort.split(',');
-    const orderDirections = order.split(',');
+    const sortFields = (req.query.primarySort || 'year,rating').split(',');
+    const orderDirections = (req.query.primaryOrder || 'desc,desc').split(',');
     // 验证排序字段
     const validSortFields = ['id', 'title', 'thumbnail', 'year', 'rating','rating_count','countries', 'genres', 'category'];
     const safeSort = sortFields

@@ -1,5 +1,9 @@
-const { callContainer } = require('../../utils/api.js');
-const { errorInfo } = require('../../utils/error.js');
+const {
+  callContainer
+} = require('../../utils/api.js');
+const {
+  errorInfo
+} = require('../../utils/error.js');
 
 Page({
   data: {
@@ -15,8 +19,10 @@ Page({
       category: ''
     },
     sort: {
-      field: 'year',
-      order: 'desc'
+      primary: 'year', // 主排序字段
+      secondary: 'rating', // 次排序字段
+      primaryOrder: 'desc', // 主排序顺序
+      secondaryOrder: 'desc' // 次排序顺序
     },
     loading: false,
     countries: ['全部'],
@@ -43,7 +49,7 @@ Page({
   /**
    * 加载类型数据
    */
-  async loadMediaGenres(){
+  async loadMediaGenres() {
     try {
       const response = await callContainer('/mediaGenres');
       const genresData = response.data.data;
@@ -56,7 +62,7 @@ Page({
     }
   },
 
-  async loadCategories(){
+  async loadCategories() {
     try {
       const response = await callContainer('/category');
       const categoriesData = response.data.data;
@@ -69,11 +75,24 @@ Page({
     }
   },
 
+  /**
+   * 格式化评价人数
+   */
+  formatRatingCount(count) {
+    console.log('当前评分人数:', count); // 添加调试日志
+    if (!count) return '0人评分';
+    if (count >= 10000) return `${(count / 10000).toFixed(1)}万人评分`;
+    if (count >= 1000) return `${(count / 1000).toFixed(1)}千人评分`;
+    return `${count}人评分`;
+  },
+
+
   onLoad() {
     this.loadCountries();
     this.loadCategories();
     this.loadMediaGenres();
     this.loadMediaData();
+
   },
 
   // 国家筛选变化
@@ -109,14 +128,18 @@ Page({
   // 排序变化
   handleSortChange(e) {
     const {
-      field,
-      order
+      field
     } = e.currentTarget.dataset;
-    this.setData({
-      sort: {
-        field,
-        order
-      }
+    this.setData(prev => {
+      const newOrder = prev.sort.primary === field ?
+        (prev.sort.primaryOrder === 'asc' ? 'desc' : 'asc') : 'desc';
+      return {
+        sort: {
+          ...prev.sort,
+          primary: field,
+          primaryOrder: newOrder
+        }
+      };
     }, () => {
       this.resetAndLoad();
     });
@@ -150,23 +173,16 @@ Page({
         category
       } = this.data.filters;
       const {
-        field,
-        order
+        primary,
+        secondary,
+        primaryOrder,
+        secondaryOrder
       } = this.data.sort;
 
-      const response = await wx.cloud.callContainer({
-        path: `/media?page=${page}&pageSize=${pageSize}&countries=${encodeURIComponent(countries)}&genres=${encodeURIComponent(genres)}&category=${category}&sort=${field}&order=${order}`,
-        method: "GET",
-        header: {
-          'X-WX-SERVICE': 'ordering-system'
-        },
-        config: {
-          env: "prod-5ghkbwa03964ccbe",
-          timeout: 15000
-        }
-      });
-
+      const path = `/media?page=${page}&pageSize=${pageSize}&countries=${encodeURIComponent(countries)}&genres=${encodeURIComponent(genres)}&category=${category}&primarySort=${primary}&primaryOrder=${primaryOrder}&secondarySort=${secondary}&secondaryOrder=${secondaryOrder}`;
+      const response = await callContainer(path)
       const newData = response.data.data;
+      console.log('API返回数据:', newData); // 添加调试日志
       this.setData({
         mediaData: {
           list: [...this.data.mediaData.list, ...newData.list],
