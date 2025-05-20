@@ -5,15 +5,15 @@ const router = express.Router()
 
 router.get('/', async function (req, res, next) {
   const r = await mysql.query('SELECT  COUNT(*) id FROM  app_express')
-  res.render('index',{
-    time:r.data[0].id+1
+  res.render('index', {
+    time: r.data[0].id + 1
   })
 })
 
 router.post('/get', async function (req, res, next) {
   const r = await mysql.query('SELECT  COUNT(*) id FROM  app_express')
   res.json({
-    number:r.data[0].id+1
+    number: r.data[0].id + 1
   })
 })
 
@@ -49,14 +49,14 @@ router.get('/dish', async function (req, res, next) {
  */
 router.get('/media', async function (req, res, next) {
   try {
-    const { 
-      page = 1, 
+    const {
+      page = 1,
       pageSize = 10,
       countries,
       genres,
       category,
-      sort = 'year',
-      order = 'desc'
+      sort = 'year,rating', // 修改默认排序为多字段
+      order = 'desc,desc'   // 修改默认排序顺序
     } = req.query;
 
     if (pageSize > 100) {
@@ -69,7 +69,7 @@ router.get('/media', async function (req, res, next) {
     const offset = (page - 1) * pageSize;
     let baseSql = 'FROM media WHERE 1=1';
     const params = [];
-    
+
     if (countries) {
       baseSql += ' AND countries = ?';
       params.push(countries);
@@ -82,24 +82,27 @@ router.get('/media', async function (req, res, next) {
       baseSql += ' AND category = ?';
       params.push(category);
     }
-    
-    // 检查 sort 字段是否合法
+
+    // 处理多字段排序
+    const sortFields = sort.split(',');
+    const orderDirections = order.split(',');
+    // 验证排序字段
     const validSortFields = ['id', 'title', 'thumbnail', 'year', 'rating', 'countries', 'genres', 'category'];
-    if (!validSortFields.includes(sort)) {
-      return res.status(400).json({
-        success: false,
-        message: '无效的排序字段'
-      });
-    }
-    
-    const safeSort = sort;
+    const safeSort = sortFields
+      .filter((field, index) =>
+        validSortFields.includes(field) &&
+        ['asc', 'desc'].includes(orderDirections[index])
+      )
+      .map((field, index) => `${field} ${orderDirections[index]}`)
+      .join(', ');
+
     const [countResult, result] = await Promise.all([
       mysql.query(`SELECT COUNT(*) as total ${baseSql}`, params),
       mysql.query(
         `SELECT id, title, thumbnail, year, rating, countries, genres, category 
-         ${baseSql} 
-         ORDER BY ${safeSort} ${order === 'asc' ? 'ASC' : 'DESC'} 
-         LIMIT ?, ?`, 
+        ${baseSql} 
+        ORDER BY ${safeSort || 'year DESC, rating DESC'} 
+        LIMIT ?, ?`,
         [...params, offset, parseInt(pageSize)]
       )
     ]);
@@ -115,7 +118,7 @@ router.get('/media', async function (req, res, next) {
         sort: { field: sort, order }
       }
     });
-    
+
   } catch (error) {
     console.error('媒体查询错误:', error);
     res.status(500).json({

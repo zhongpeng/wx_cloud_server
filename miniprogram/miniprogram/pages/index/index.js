@@ -37,8 +37,9 @@ Page({
 
   // 排序变化
   handleSortChange(e) {
+    console.log(e.currentTarget.dataset)
     this.setData({
-      sort: e.detail
+      sort: e.currentTarget.dataset
     }, () => {
       this.resetAndLoad();
     });
@@ -58,7 +59,6 @@ Page({
   // 加载数据
   async loadMediaData() {
     if (this.data.loading) return;
-    
     this.setData({ loading: true });
     try {
       const { page, pageSize } = this.data.mediaData;
