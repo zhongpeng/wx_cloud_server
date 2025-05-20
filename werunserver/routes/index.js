@@ -84,7 +84,7 @@ router.get('/media', async function (req, res, next) {
     const sortFields = sort.split(',');
     const orderDirections = order.split(',');
     // 验证排序字段
-    const validSortFields = ['id', 'title', 'thumbnail', 'year', 'rating', 'countries', 'genres', 'category'];
+    const validSortFields = ['id', 'title', 'thumbnail', 'year', 'rating','rating_count','countries', 'genres', 'category'];
     const safeSort = sortFields
       .filter((field, index) =>
         validSortFields.includes(field) &&
@@ -96,7 +96,7 @@ router.get('/media', async function (req, res, next) {
     const [countResult, result] = await Promise.all([
       mysql.query(`SELECT COUNT(*) as total ${baseSql}`, params),
       mysql.query(
-        `SELECT id, title, thumbnail, year, rating, countries, genres, category 
+        `SELECT id, title, thumbnail, year, rating,rating_count, countries, genres, category 
         ${baseSql} 
         ORDER BY ${safeSort || 'year DESC, rating DESC'} 
         LIMIT ?, ?`,

@@ -1,7 +1,7 @@
 <view class="container">
   <!-- 筛选区域 -->
   <view class="filter-area">
-    <picker mode="selector" range="{{countries}}" bindchange="handleCountryChange">
+    <picker mode="selector" range="{{countries}}" bindchange="handleCountriesChange">
       <view class="filter-item">国家: {{filters.country || '全部'}}</view>
     </picker>
     <picker mode="selector" range="{{genres}}" bindchange="handleGenreChange">
@@ -27,9 +27,12 @@
     <view wx:for="{{mediaData.list}}" wx:key="id" class="media-item">
       <image src="{{item.thumbnail}}" mode="aspectFill"></image>
       <view class="info">
+        <!-- 第一行：名称 -->
         <text class="title">{{item.title}}</text>
-        <text class="meta">{{item.year}} · {{item.country}}</text>
-        <text class="rating">评分: {{item.rating}}</text>
+        <!-- 第二行：国家和分类 -->
+        <text class="meta">{{item.category=="tv"?"剧集":"电影"}} ·  {{item.countries}}</text>
+        <!-- 第三行：评分数据 -->
+        <text class="rating">评分: {{item.rating}} ({{item.ratingCount || 0}}人评分)</text>
       </view>
     </view>
 

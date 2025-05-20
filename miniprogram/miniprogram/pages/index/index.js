@@ -1,3 +1,6 @@
+const { callContainer } = require('../../utils/api.js');
+const { errorInfo } = require('../../utils/error.js');
+
 Page({
   data: {
     mediaData: {
@@ -16,17 +19,65 @@ Page({
       order: 'desc'
     },
     loading: false,
-    countries: ['全部', '中国', '美国', '日本', '韩国', '英国'],
-    genres: ['全部', '动作', '喜剧', '爱情', '科幻', '恐怖'],
-    categories: ['全部', 'TV', 'movie']
+    countries: ['全部'],
+    genres: ['全部'],
+    categories: ['全部']
+  },
+
+  /**
+   * 加载国家数据
+   */
+  async loadCountries() {
+    try {
+      const response = await callContainer('/mediaCountries')
+      const countriesData = response.data.data;
+      const countries = ['全部', ...countriesData.map(item => item.countries)];
+      this.setData({
+        countries
+      });
+    } catch (e) {
+      errorInfo('加载国家数据失败')
+    }
+  },
+
+  /**
+   * 加载类型数据
+   */
+  async loadMediaGenres(){
+    try {
+      const response = await callContainer('/mediaGenres');
+      const genresData = response.data.data;
+      const genres = ['全部', ...genresData.map(item => item.genres)];
+      this.setData({
+        genres
+      });
+    } catch (e) {
+      errorInfo('加载类型数据失败')
+    }
+  },
+
+  async loadCategories(){
+    try {
+      const response = await callContainer('/category');
+      const categoriesData = response.data.data;
+      const categories = ['全部', ...categoriesData.map(item => item.category)];
+      this.setData({
+        categories
+      });
+    } catch (e) {
+      errorInfo('加载分类失败')
+    }
   },
 
   onLoad() {
+    this.loadCountries();
+    this.loadCategories();
+    this.loadMediaGenres();
     this.loadMediaData();
   },
 
   // 国家筛选变化
-  handlecountriesChange(e) {
+  handleCountriesChange(e) {
     const value = this.data.countries[e.detail.value];
     this.setData({
       'filters.countries': value === '全部' ? '' : value
@@ -57,9 +108,15 @@ Page({
 
   // 排序变化
   handleSortChange(e) {
-    const { field, order } = e.currentTarget.dataset;
+    const {
+      field,
+      order
+    } = e.currentTarget.dataset;
     this.setData({
-      sort: { field, order }
+      sort: {
+        field,
+        order
+      }
     }, () => {
       this.resetAndLoad();
     });
@@ -79,12 +136,24 @@ Page({
   // 加载数据
   async loadMediaData() {
     if (this.data.loading) return;
-    this.setData({ loading: true });
+    this.setData({
+      loading: true
+    });
     try {
-      const { page, pageSize } = this.data.mediaData;
-      const { countries, genres, category } = this.data.filters;
-      const { field, order } = this.data.sort;
-      
+      const {
+        page,
+        pageSize
+      } = this.data.mediaData;
+      const {
+        countries,
+        genres,
+        category
+      } = this.data.filters;
+      const {
+        field,
+        order
+      } = this.data.sort;
+
       const response = await wx.cloud.callContainer({
         path: `/media?page=${page}&pageSize=${pageSize}&countries=${encodeURIComponent(countries)}&genres=${encodeURIComponent(genres)}&category=${category}&sort=${field}&order=${order}`,
         method: "GET",
@@ -93,10 +162,10 @@ Page({
         },
         config: {
           env: "prod-5ghkbwa03964ccbe",
-          timeout:15000
+          timeout: 15000
         }
       });
-      
+
       const newData = response.data.data;
       this.setData({
         mediaData: {
@@ -109,14 +178,16 @@ Page({
       });
     } catch (e) {
       console.error('加载数据失败:', e);
-      this.setData({ loading: false });
+      this.setData({
+        loading: false
+      });
     }
   },
 
   // 滚动到底部加载更多
   onReachBottom() {
-    if (!this.data.loading && 
-        this.data.mediaData.list.length < this.data.mediaData.total) {
+    if (!this.data.loading &&
+      this.data.mediaData.list.length < this.data.mediaData.total) {
       this.setData({
         'mediaData.page': this.data.mediaData.page + 1
       }, () => {
