@@ -40,7 +40,7 @@ router.get('/dish', async function (req, res, next) {
  */
 router.get('/dishCategory', async function (req, res, next) {
   try {
-    const result = await mysql.query('SELECT * FROM `category` LIMIT 50 OFFSET 0')
+    const result = await mysql.query('SELECT * FROM category LIMIT 200 OFFSET 0')
     res.json({
       success: true,
       data: result.data
