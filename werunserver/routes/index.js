@@ -299,23 +299,65 @@ router.get('/category', async function (req, res, next) {
 
 /*****************************************   KTV ****************************************/
 /**
- * 获取门店信息
+ * 获取门店详细信息
  */
-router.get('/store', async function (req, res, next) {
+router.get('/storeInfo', async function (req, res, next) {
   try {
-    const result = await mysql.query('SELECT * FROM Store')
+    // 查询基础信息
+    const storeResult = await mysql.query(`
+      SELECT 
+        name, 
+        phone, 
+        address,
+        status,
+        operation_type,
+        open_date,
+        suspension_reason,
+        suspension_start,
+        suspension_end
+      FROM Store
+      LIMIT 1
+    `);
+    
+    // 查询营业时间
+    const hoursResult = await mysql.query(`
+      SELECT 
+        days_of_week,
+        start_time,
+        end_time
+      FROM OperatingDays od
+      JOIN BusinessSchedule bs ON od.schedule_id = bs.schedule_id
+      WHERE bs.store_id = 1
+    `);
+    
+    // 查询特殊营业时间
+    const specialHoursResult = await mysql.query(`
+      SELECT 
+        start_date,
+        end_date,
+        start_time,
+        end_time
+      FROM SpecialSchedule ss
+      JOIN SpecialTimeSlot sts ON ss.special_id = sts.special_id
+      WHERE ss.store_id = 1
+    `);
+
     res.json({
       success: true,
-      data: result.data
-    })
+      data: {
+        store: storeResult.data[0] || null,
+        normalHours: hoursResult.data,
+        specialHours: specialHoursResult.data
+      }
+    });
   } catch (error) {
     res.status(500).json({
       success: false,
       message: '查询门店信息失败',
       error: error.message
-    })
+    });
   }
-})
+});
 
 
 module.exports = router
