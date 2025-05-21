@@ -2,6 +2,15 @@ const express = require('express')
 const mysql = require('../work/mysql')
 const router = express.Router()
 
+// 添加全局中间件设置CORS头
+router.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*')
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE')
+  res.header('Access-Control-Allow-Headers', 'Content-Type')
+  next()
+})
+
+
 router.get('/', async function (req, res, next) {
   const r = await mysql.query('SELECT  COUNT(*) id FROM  app_express')
   res.render('index', {
@@ -303,12 +312,6 @@ router.get('/category', async function (req, res, next) {
  */
 router.get('/storeInfo', async function (req, res, next) {
   try {
-
-    // Set CORS headers
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
-    res.header('Access-Control-Allow-Headers', 'Content-Type');
-
     // 查询基础信息
     const storeResult = await mysql.query(`
       SELECT 
@@ -364,6 +367,76 @@ router.get('/storeInfo', async function (req, res, next) {
     });
   }
 });
+
+
+
+/**
+ * 查询套餐数据
+ */
+router.get('/packages', async function (req, res, next) {
+  try {
+    const result = await mysql.query(`
+      SELECT 
+        package_id,
+        name,
+        status,
+        description,
+        is_active
+      FROM Package
+      ORDER BY package_id
+    `);
+    
+    res.json({
+      success: true,
+      data: result.data
+    });
+  } catch (error) {
+    console.error('查询套餐数据失败:', error);
+    res.status(500).json({
+      success: false,
+      message: '查询套餐数据失败',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * 新增套餐
+ */
+router.post('/addPackage', async function (req, res, next) {
+  try {
+    const { name, description } = req.body;
+    
+    if (!name) {
+      return res.status(400).json({
+        success: false,
+        message: '套餐名称不能为空'
+      });
+    }
+
+    const result = await mysql.query(
+      'INSERT INTO Package (name, description) VALUES (?, ?)',
+      [name, description]
+    );
+
+    res.json({
+      success: true,
+      data: {
+        package_id: result.data.insertId,
+        name,
+        description
+      }
+    });
+  } catch (error) {
+    console.error('新增套餐失败:', error);
+    res.status(500).json({
+      success: false,
+      message: '新增套餐失败',
+      error: error.message
+    });
+  }
+});
+
 
 
 module.exports = router
