@@ -301,7 +301,7 @@ router.get('/category', async function (req, res, next) {
 /**
  * 获取门店详细信息
  */
-router.post('/storeInfo', async function (req, res, next) {
+router.get('/storeInfo', async function (req, res, next) {
   try {
     // 查询基础信息
     const storeResult = await mysql.query(`
