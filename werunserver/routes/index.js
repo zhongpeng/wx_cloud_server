@@ -297,4 +297,25 @@ router.get('/category', async function (req, res, next) {
 })
 
 
+/*****************************************   KTV ****************************************/
+/**
+ * 获取门店信息
+ */
+router.get('/store', async function (req, res, next) {
+  try {
+    const result = await mysql.query('SELECT * FROM Store')
+    res.json({
+      success: true,
+      data: result.data
+    })
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: '查询门店信息失败',
+      error: error.message
+    })
+  }
+})
+
+
 module.exports = router

@@ -6,8 +6,27 @@ Page({
     categories: []
   },
 
+  onUnload() {
+    // 获取所有页面栈
+    const pages = getCurrentPages();
+    // 找到首页实例
+    const indexPage = pages.find(page => page.route === 'pages/index/index');
+    if (indexPage) {
+      // 调用首页的 loadDishCategory 方法刷新数据
+      indexPage.loadDishCategory();
+    }
+  },
+
   onLoad() {
     this.loadCategories();
+  },
+
+  onHide() {
+    const pages = getCurrentPages();
+    const indexPage = pages.find(page => page.route === 'pages/index/index');
+    if (indexPage) {
+      indexPage.loadDishCategory();
+    }
   },
 
   async loadCategories() {
