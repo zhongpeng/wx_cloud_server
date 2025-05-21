@@ -86,7 +86,7 @@ router.post('/addDishCategory', async function (req, res, next) {
 });
 
 // 更新分类
-router.post('/updateCategory', async function(req, res, next) {
+router.post('/updateCategory', async function (req, res, next) {
   try {
     const { id, name } = req.body;
     await mysql.query('UPDATE category SET name = ? WHERE id = ?', [name, id]);
@@ -101,7 +101,7 @@ router.post('/updateCategory', async function(req, res, next) {
 });
 
 // 删除分类
-router.post('/deleteCategory', async function(req, res, next) {
+router.post('/deleteCategory', async function (req, res, next) {
   try {
     const { id } = req.body;
     await mysql.query('DELETE FROM category WHERE id = ?', [id]);
@@ -303,6 +303,12 @@ router.get('/category', async function (req, res, next) {
  */
 router.get('/storeInfo', async function (req, res, next) {
   try {
+
+    // Set CORS headers
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+    res.header('Access-Control-Allow-Headers', 'Content-Type');
+
     // 查询基础信息
     const storeResult = await mysql.query(`
       SELECT 
@@ -318,7 +324,7 @@ router.get('/storeInfo', async function (req, res, next) {
       FROM Store
       LIMIT 1
     `);
-    
+
     // 查询营业时间
     const hoursResult = await mysql.query(`
       SELECT 
@@ -329,7 +335,7 @@ router.get('/storeInfo', async function (req, res, next) {
       JOIN BusinessSchedule bs ON od.schedule_id = bs.schedule_id
       WHERE bs.store_id = 1
     `);
-    
+
     // 查询特殊营业时间
     const specialHoursResult = await mysql.query(`
       SELECT 
