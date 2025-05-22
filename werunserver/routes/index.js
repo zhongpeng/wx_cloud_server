@@ -315,7 +315,7 @@ router.get('/storeInfo', async function (req, res, next) {
     const result = await mysql.query(`
       SELECT 
         s.store_id, 
-        s.name 
+        s.name,
         s.phone, 
         s.address, 
         CASE s.status 
