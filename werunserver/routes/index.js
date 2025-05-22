@@ -556,6 +556,124 @@ router.put('/updatePackage/:id', async function (req, res, next) {
   }
 });
 
+/**
+ * 查询所有包房
+ */
+router.get('/roomTypes', async function (req, res, next) {
+  try {
+    const result = await mysql.query('SELECT * FROM RoomType')
+    res.json({
+      success: true,
+      data: result.data
+    })
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: '查询包房数据失败',
+      error: error.message
+    })
+  }
+})
+
+/**
+ * 添加新包房
+ */
+router.post('/addRoomType', async function (req, res, next) {
+  try {
+    const { store_id, name, quantity, min_capacity, max_capacity, screen_type, sound_system, toilet_type } = req.body
+    
+    if (!name || !quantity || !min_capacity || !max_capacity) {
+      return res.status(400).json({
+        success: false,
+        message: '必填字段不能为空'
+      })
+    }
+
+    // 处理图片URL，替换为实际对象存储地址
+    let images = []
+    if (req.body.images && Array.isArray(req.body.images)) {
+      images = req.body.images.map(img => `https://7072-prod-5ghkbwa03964ccbe-1254060974.tcb.qcloud.la/images/${img}`)
+    }
+
+    const result = await mysql.query(
+      'INSERT INTO RoomType (store_id, name, quantity, min_capacity, max_capacity, screen_type, sound_system, toilet_type, images) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [store_id, name, quantity, min_capacity, max_capacity, screen_type, sound_system, toilet_type, JSON.stringify(images)]
+    )
+
+    res.json({
+      success: true,
+      data: {
+        id: result.insertId
+      }
+    })
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: '添加包房失败',
+      error: error.message
+    })
+  }
+})
+
+/**
+ * 更新包房信息
+ */
+router.put('/updateRoomType/:id', async function (req, res, next) {
+  try {
+    const { id } = req.params
+    const { name, quantity, min_capacity, max_capacity, screen_type, sound_system, toilet_type } = req.body
+
+    // 处理图片URL更新
+    let images = []
+    if (req.body.images && Array.isArray(req.body.images)) {
+      images = req.body.images.map(img => `https://7072-prod-5ghkbwa03964ccbe-1254060974.tcb.qcloud.la/images/${img}`)
+    }
+
+    const result = await mysql.query(
+      'UPDATE RoomType SET name = ?, quantity = ?, min_capacity = ?, max_capacity = ?, screen_type = ?, sound_system = ?, toilet_type = ?, images = ? WHERE room_type_id = ?',
+      [name, quantity, min_capacity, max_capacity, screen_type, sound_system, toilet_type, JSON.stringify(images), id]
+    )
+
+    res.json({
+      success: true,
+      data: {
+        affectedRows: result.affectedRows
+      }
+    })
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: '更新包房失败',
+      error: error.message
+    })
+  }
+})
+
+/**
+ * 删除包房
+ */
+router.delete('/deleteRoomType/:id', async function (req, res, next) {
+  try {
+    const { id } = req.params
+    const result = await mysql.query(
+      'DELETE FROM RoomType WHERE room_type_id = ?',
+      [id]
+    )
+
+    res.json({
+      success: true,
+      data: {
+        affectedRows: result.affectedRows
+      }
+    })
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: '删除包房失败',
+      error: error.message
+    })
+  }
+})
 
 
 module.exports = router
