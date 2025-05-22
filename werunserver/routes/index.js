@@ -312,54 +312,81 @@ router.get('/category', async function (req, res, next) {
  */
 router.get('/storeInfo', async function (req, res, next) {
   try {
-    // 查询基础信息
-    const storeResult = await mysql.query(`
+    const result = await mysql.query(`
       SELECT 
-        name, 
-        phone, 
-        address,
-        status,
-        operation_type,
-        open_date,
-        suspension_reason,
-        suspension_start,
-        suspension_end
-      FROM Store
+        s.store_id, 
+        s.name AS '店铺名称', 
+        s.phone AS '联系电话', 
+        s.address AS '详细地址', 
+        CASE s.status 
+            WHEN '暂停营业' THEN 
+                CONCAT('暂停营业（原因：', COALESCE(s.suspension_reason, '无'), 
+                       ' 时段：', s.suspension_start, '至', 
+                       COALESCE(s.suspension_end, '未确定'), ')') 
+            WHEN '即将开业' THEN 
+                CONCAT('即将开业（预计开业时间：', s.open_date, ')') 
+            ELSE '正常营业' 
+        END AS '营业状态', 
+        ( 
+            SELECT 
+                JSON_ARRAYAGG( 
+                    JSON_OBJECT( 
+                        '营业类型', IF(bs.schedule_type = '全年', '全年营业', CONCAT(bs.season, '营业')), 
+                        '营业日', od.days_of_week, 
+                        '时间段', ( 
+                            SELECT 
+                                JSON_ARRAYAGG( 
+                                    IF(bts.is_24h, 
+                                        '24小时营业', 
+                                        CONCAT(TIME_FORMAT(bts.start_time, '%H:%i'), '-', 
+                                               TIME_FORMAT(bts.end_time, '%H:%i')) 
+                                    ) 
+                                ) 
+                            FROM BusinessTimeSlot bts 
+                            WHERE bts.schedule_id = bs.schedule_id 
+                        ) 
+                    ) 
+                ) 
+            FROM BusinessSchedule bs 
+            JOIN OperatingDays od ON bs.schedule_id = od.schedule_id 
+            WHERE bs.store_id = s.store_id 
+        ) AS '常规营业时间', 
+        ( 
+            SELECT 
+                JSON_ARRAYAGG( 
+                JSON_OBJECT( 
+                    '日期范围', CONCAT(ss.start_date, ' 至 ', ss.end_date), 
+                    '营业状态', ss.status, 
+                    '时间段', ( 
+                        SELECT 
+                            CASE 
+                                WHEN ss.status = '全天不营业' THEN JSON_ARRAY('不营业') 
+                                WHEN ss.status = '全天营业' THEN JSON_ARRAY('24小时营业') 
+                                ELSE ( 
+                                    SELECT JSON_ARRAYAGG( 
+                                        CONCAT(TIME_FORMAT(sts.start_time, '%H:%i'), '-', 
+                                               TIME_FORMAT(sts.end_time, '%H:%i')) 
+                                    ) 
+                                    FROM SpecialTimeSlot sts 
+                                    WHERE sts.special_id = ss.special_id 
+                                ) 
+                            END 
+                    ) 
+                ) 
+            ) 
+            FROM SpecialSchedule ss 
+            WHERE ss.store_id = s.store_id 
+        ) AS '特殊营业时间' 
+      FROM Store s 
       LIMIT 1
-    `);
-
-    // 查询营业时间
-    const hoursResult = await mysql.query(`
-      SELECT 
-        days_of_week,
-        start_time,
-        end_time
-      FROM OperatingDays od
-      JOIN BusinessSchedule bs ON od.schedule_id = bs.schedule_id
-      WHERE bs.store_id = 1
-    `);
-
-    // 查询特殊营业时间
-    const specialHoursResult = await mysql.query(`
-      SELECT 
-        start_date,
-        end_date,
-        start_time,
-        end_time
-      FROM SpecialSchedule ss
-      JOIN SpecialTimeSlot sts ON ss.special_id = sts.special_id
-      WHERE ss.store_id = 1
     `);
 
     res.json({
       success: true,
-      data: {
-        store: storeResult.data[0] || null,
-        normalHours: hoursResult.data,
-        specialHours: specialHoursResult.data
-      }
+      data: result.data[0] || null
     });
   } catch (error) {
+    console.error('查询门店信息失败:', error);
     res.status(500).json({
       success: false,
       message: '查询门店信息失败',
