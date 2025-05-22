@@ -579,6 +579,7 @@ router.get('/roomTypes', async function (req, res, next) {
  * 添加新包房
  */
 router.post('/addRoomType', async function (req, res, next) {
+  let connection;
   try {
     const { store_id, name, quantity, min_capacity, max_capacity, screen_type, sound_system, toilet_type } = req.body
     
@@ -588,18 +589,22 @@ router.post('/addRoomType', async function (req, res, next) {
         message: '必填字段不能为空'
       })
     }
-
-    // 处理图片URL，替换为实际对象存储地址
+    
+    // 获取数据库连接
+    connection = await mysql.getConnection();
+    await connection.beginTransaction();
+    
+    // 处理图片URL
     let images = []
     if (req.body.images && Array.isArray(req.body.images)) {
       images = req.body.images.map(img => `https://7072-prod-5ghkbwa03964ccbe-1254060974.tcb.qcloud.la/images/${img}`)
     }
-
-    const result = await mysql.query(
+    
+    const result = await connection.query(
       'INSERT INTO RoomType (store_id, name, quantity, min_capacity, max_capacity, screen_type, sound_system, toilet_type, images) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
       [store_id, name, quantity, min_capacity, max_capacity, screen_type, sound_system, toilet_type, JSON.stringify(images)]
     )
-
+    await connection.commit();
     res.json({
       success: true,
       data: {
@@ -607,11 +612,15 @@ router.post('/addRoomType', async function (req, res, next) {
       }
     })
   } catch (error) {
+    if (connection) await connection.rollback();
+    console.error('添加包房失败:', error);
     res.status(500).json({
       success: false,
       message: '添加包房失败',
       error: error.message
     })
+  } finally {
+    if (connection) connection.release();
   }
 })
 
