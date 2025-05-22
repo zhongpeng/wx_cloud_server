@@ -315,9 +315,9 @@ router.get('/storeInfo', async function (req, res, next) {
     const result = await mysql.query(`
       SELECT 
         s.store_id, 
-        s.name AS '店铺名称', 
-        s.phone AS '联系电话', 
-        s.address AS '详细地址', 
+        s.name 
+        s.phone, 
+        s.address, 
         CASE s.status 
             WHEN '暂停营业' THEN 
                 CONCAT('暂停营业（原因：', COALESCE(s.suspension_reason, '无'), 
@@ -326,7 +326,7 @@ router.get('/storeInfo', async function (req, res, next) {
             WHEN '即将开业' THEN 
                 CONCAT('即将开业（预计开业时间：', s.open_date, ')') 
             ELSE '正常营业' 
-        END AS '营业状态', 
+        END, 
         ( 
             SELECT 
                 JSON_ARRAYAGG( 
@@ -350,7 +350,7 @@ router.get('/storeInfo', async function (req, res, next) {
             FROM BusinessSchedule bs 
             JOIN OperatingDays od ON bs.schedule_id = od.schedule_id 
             WHERE bs.store_id = s.store_id 
-        ) AS '常规营业时间', 
+        ), 
         ( 
             SELECT 
                 JSON_ARRAYAGG( 
@@ -376,7 +376,7 @@ router.get('/storeInfo', async function (req, res, next) {
             ) 
             FROM SpecialSchedule ss 
             WHERE ss.store_id = s.store_id 
-        ) AS '特殊营业时间' 
+        )
       FROM Store s 
       LIMIT 1
     `);
@@ -459,6 +459,98 @@ router.post('/addPackage', async function (req, res, next) {
     res.status(500).json({
       success: false,
       message: '新增套餐失败',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * 删除套餐
+ */
+router.delete('/deletePackage/:id', async function (req, res, next) {
+  try {
+    const { id } = req.params;
+    
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        message: '套餐ID不能为空'
+      });
+    }
+    const result = await mysql.query(
+      'DELETE FROM Package WHERE package_id = ?',
+      [id]
+    );
+    if (result.data.affectedRows === 0) {
+      return res.status(404).json({
+        success: false,
+        message: '未找到指定套餐'
+      });
+    }
+    res.json({
+      success: true,
+      message: '套餐删除成功'
+    });
+  } catch (error) {
+    console.error('删除套餐失败:', error);
+    res.status(500).json({
+      success: false,
+      message: '删除套餐失败',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * 编辑套餐
+ */
+router.put('/updatePackage/:id', async function (req, res, next) {
+  try {
+    const { id } = req.params;
+    const { name, description, status, is_active } = req.body;
+    
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        message: '套餐ID不能为空'
+      });
+    }
+
+    if (!name) {
+      return res.status(400).json({
+        success: false,
+        message: '套餐名称不能为空'
+      });
+    }
+
+    const result = await mysql.query(
+      'UPDATE Package SET name = ?, description = ?, status = ?, is_active = ? WHERE package_id = ?',
+      [name, description, status, is_active, id]
+    );
+
+    if (result.data.affectedRows === 0) {
+      return res.status(404).json({
+        success: false,
+        message: '未找到指定套餐'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: '套餐更新成功',
+      data: {
+        package_id: id,
+        name,
+        description,
+        status,
+        is_active
+      }
+    });
+  } catch (error) {
+    console.error('更新套餐失败:', error);
+    res.status(500).json({
+      success: false,
+      message: '更新套餐失败',
       error: error.message
     });
   }
