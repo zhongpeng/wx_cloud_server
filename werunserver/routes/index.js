@@ -11,14 +11,13 @@ router.use((req, res, next) => {
 })
 
 /**
- * 查询门店信息（默认门店）
+ * 查询门店基础信息（默认门店）
  */
 router.get('/store', async function (req, res, next) {
   try {
-    // 假设默认门店ID为1，可根据实际情况修改
     const DEFAULT_STORE_ID = 1;
     
-    // 1. 查询门店基础信息
+    // 1. 查询门店基础信息和联系方式
     const [storeResult] = await mysql.query(`
       SELECT 
         sb.*,
@@ -82,7 +81,27 @@ router.get('/store', async function (req, res, next) {
     
     store.businessWeekdays = weekdaysResult.data;
     
-    // 4. 查询门店相册
+    res.json({
+      success: true,
+      data: store
+    });
+  } catch (error) {
+    console.error('查询门店信息失败:', error);
+    res.status(500).json({
+      success: false,
+      message: '查询门店信息失败',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * 查询门店相册（默认门店）
+ */
+router.get('/store/album', async function (req, res, next) {
+  try {
+    const DEFAULT_STORE_ID = 1;
+    
     const [albumResult] = await mysql.query(`
       SELECT 
         sa.*,
@@ -98,9 +117,27 @@ router.get('/store', async function (req, res, next) {
         sa.create_time DESC
     `, [DEFAULT_STORE_ID]);
     
-    store.album = albumResult.data;
+    res.json({
+      success: true,
+      data: albumResult.data
+    });
+  } catch (error) {
+    console.error('查询门店相册失败:', error);
+    res.status(500).json({
+      success: false,
+      message: '查询门店相册失败',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * 查询门店标签（默认门店）
+ */
+router.get('/store/tags', async function (req, res, next) {
+  try {
+    const DEFAULT_STORE_ID = 1;
     
-    // 5. 查询门店标签
     const [tagsResult] = await mysql.query(`
       SELECT 
         tid.id AS tag_id,
@@ -116,23 +153,19 @@ router.get('/store', async function (req, res, next) {
         st.store_id = ?
     `, [DEFAULT_STORE_ID]);
     
-    store.tags = tagsResult.data;
-    
-    // 返回完整的门店信息
     res.json({
       success: true,
-      data: store
+      data: tagsResult.data
     });
   } catch (error) {
-    console.error('查询门店信息失败:', error);
+    console.error('查询门店标签失败:', error);
     res.status(500).json({
       success: false,
-      message: '查询门店信息失败',
+      message: '查询门店标签失败',
       error: error.message
     });
   }
 });
-
 
 
 module.exports = router
