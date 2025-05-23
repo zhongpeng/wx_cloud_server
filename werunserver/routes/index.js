@@ -18,7 +18,7 @@ router.get('/store', async function (req, res, next) {
     const DEFAULT_STORE_ID = 1;
     
     // 1. 查询门店基础信息和联系方式
-    const [storeResult] = await mysql.query(`
+    const storeResult = await mysql.query(`
       SELECT 
         sb.*,
         sc.phone_type,
@@ -40,7 +40,7 @@ router.get('/store', async function (req, res, next) {
         sb.id = ?
     `, [DEFAULT_STORE_ID]);
     
-    if (!storeResult || !storeResult.data.length) {
+    if (!storeResult || !storeResult.data || !storeResult.data.length) {
       return res.status(404).json({
         success: false,
         message: '默认门店不存在'
@@ -50,7 +50,7 @@ router.get('/store', async function (req, res, next) {
     const store = storeResult.data[0];
     
     // 2. 查询门店营业时间
-    const [hoursResult] = await mysql.query(`
+    const hoursResult = await mysql.query(`
       SELECT 
         sbh.season_id,
         sd.name AS season_name,
@@ -64,10 +64,10 @@ router.get('/store', async function (req, res, next) {
         sbh.store_id = ?
     `, [DEFAULT_STORE_ID]);
     
-    store.businessHours = hoursResult.data;
+    store.businessHours = hoursResult.data || [];
     
     // 3. 查询门店营业日
-    const [weekdaysResult] = await mysql.query(`
+    const weekdaysResult = await mysql.query(`
       SELECT 
         wd.id AS weekday_id,
         wd.name AS weekday_name
@@ -79,7 +79,7 @@ router.get('/store', async function (req, res, next) {
         sbw.store_id = ?
     `, [DEFAULT_STORE_ID]);
     
-    store.businessWeekdays = weekdaysResult.data;
+    store.businessWeekdays = weekdaysResult.data || [];
     
     res.json({
       success: true,
@@ -102,7 +102,7 @@ router.get('/store/album', async function (req, res, next) {
   try {
     const DEFAULT_STORE_ID = 1;
     
-    const [albumResult] = await mysql.query(`
+    const albumResult = await mysql.query(`
       SELECT 
         sa.*,
         mt.name AS media_type_name
@@ -119,7 +119,7 @@ router.get('/store/album', async function (req, res, next) {
     
     res.json({
       success: true,
-      data: albumResult.data
+      data: albumResult.data || []
     });
   } catch (error) {
     console.error('查询门店相册失败:', error);
@@ -138,7 +138,7 @@ router.get('/store/tags', async function (req, res, next) {
   try {
     const DEFAULT_STORE_ID = 1;
     
-    const [tagsResult] = await mysql.query(`
+    const tagsResult = await mysql.query(`
       SELECT 
         tid.id AS tag_id,
         tid.name AS tag_name,
@@ -155,7 +155,7 @@ router.get('/store/tags', async function (req, res, next) {
     
     res.json({
       success: true,
-      data: tagsResult.data
+      data: tagsResult.data || []
     });
   } catch (error) {
     console.error('查询门店标签失败:', error);
@@ -166,6 +166,5 @@ router.get('/store/tags', async function (req, res, next) {
     });
   }
 });
-
 
 module.exports = router
